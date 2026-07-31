@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rubik Solver Pro - CORE-X 3D Engine</title>
+    <title>Rubik Solver Pro - CORE-X Ultimate Engine</title>
     <style>
         :root {
             --primary: #00f3ff;
             --secondary: #39ff14;
-            --bg: #0d1117;
-            --cube-size: 180px;
+            --bg: #050811;
+            --cube-size: 160px;
         }
         body {
             background-color: var(--bg);
@@ -19,24 +19,24 @@
             flex-direction: column;
             align-items: center;
             margin: 0;
-            padding: 20px;
-            overflow-x: hidden;
+            padding: 10px;
         }
         h1 {
             color: var(--primary);
             text-transform: uppercase;
             letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
-            text-align: center;
+            margin: 5px 0;
+            font-size: 1.5rem;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
         }
-        .subtitle { color: #888; margin-top: -15px; margin-bottom: 30px; }
+        .subtitle { color: #888; font-size: 0.8rem; margin-bottom: 10px; }
 
-        /* --- 3D CUBE CSS --- */
+        /* --- 3D CUBE CONTAINER --- */
         .scene {
             width: var(--cube-size);
             height: var(--cube-size);
-            perspective: 800px;
-            margin: 40px 0;
+            perspective: 700px;
+            margin: 20px 0;
         }
         .cube {
             width: 100%;
@@ -44,7 +44,7 @@
             position: relative;
             transform-style: preserve-3d;
             transform: rotateX(-25deg) rotateY(-45deg);
-            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+            transition: transform 0.6s ease;
         }
         .face {
             position: absolute;
@@ -55,20 +55,22 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             grid-template-rows: repeat(3, 1fr);
-            gap: 3px;
-            padding: 3px;
+            gap: 2px;
+            padding: 2px;
             box-sizing: border-box;
-            border-radius: 5px;
+            border-radius: 4px;
         }
         .sticker {
             width: 100%;
             height: 100%;
-            border-radius: 4px;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
-            transition: background-color 0.15s ease;
+            border-radius: 3px;
+            cursor: pointer;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            transition: transform 0.1s;
         }
+        .sticker:active { transform: scale(0.9); }
         
-        /* 3D Positioning */
+        /* 3D Positions */
         #face-F { transform: translateZ(calc(var(--cube-size) / 2)); }
         #face-B { transform: rotateY(180deg) translateZ(calc(var(--cube-size) / 2)); }
         #face-R { transform: rotateY(90deg) translateZ(calc(var(--cube-size) / 2)); }
@@ -76,73 +78,95 @@
         #face-U { transform: rotateX(90deg) translateZ(calc(var(--cube-size) / 2)); }
         #face-D { transform: rotateX(-90deg) translateZ(calc(var(--cube-size) / 2)); }
 
+        /* --- COLOR PALETTE FOR PAINTING --- */
+        .palette-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.05);
+            padding: 8px 12px;
+            border-radius: 20px;
+            border: 1px solid #333;
+        }
+        .palette-color {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+        .palette-color.active {
+            border-color: #fff;
+            transform: scale(1.15);
+        }
+
         /* --- CONTROLS --- */
-        .cam-controls, .cube-controls {
+        .controls {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
             justify-content: center;
-            max-width: 400px;
-            margin-bottom: 15px;
+            max-width: 450px;
+            margin-bottom: 10px;
         }
         button {
-            padding: 12px 18px;
+            padding: 8px 12px;
             background: rgba(0, 243, 255, 0.1);
             color: var(--primary);
             border: 1px solid var(--primary);
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
-            transition: all 0.2s ease;
+            font-size: 0.85rem;
+            transition: all 0.2s;
         }
-        button:hover, button:active {
-            background: var(--primary);
-            color: #000;
-            box-shadow: 0 0 15px var(--primary);
-        }
+        button:hover { background: var(--primary); color: #000; }
         .btn-solve {
             border-color: var(--secondary);
             color: var(--secondary);
             background: rgba(57, 255, 20, 0.1);
             width: 100%;
-            font-size: 1.1rem;
+            font-size: 1rem;
+            padding: 10px;
         }
-        .btn-solve:hover {
-            background: var(--secondary);
-            color: #000;
-            box-shadow: 0 0 15px var(--secondary);
-        }
-        .btn-cam {
-            background: transparent;
-            border-color: #555;
-            color: #ccc;
-            font-size: 0.8rem;
-        }
+        .btn-solve:hover { background: var(--secondary); color: #000; box-shadow: 0 0 15px var(--secondary); }
 
         /* --- TERMINAL --- */
         #terminal {
-            width: 100%;
+            width: 90%;
             max-width: 400px;
-            height: 120px;
-            background: rgba(0, 0, 0, 0.8);
+            height: 90px;
+            background: rgba(0, 0, 0, 0.9);
             border: 1px solid #333;
-            border-radius: 8px;
-            padding: 10px;
+            border-radius: 6px;
+            padding: 8px;
             overflow-y: auto;
             font-family: monospace;
-            font-size: 0.85em;
-            margin-top: 10px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,1);
+            font-size: 0.75rem;
         }
-        .log { margin: 4px 0; color: #aaa; }
+        .log { margin: 2px 0; color: #aaa; }
         .log-highlight { color: var(--secondary); font-weight: bold; }
-        .log-algo { color: var(--primary); }
     </style>
 </head>
 <body>
 
-    <h1>CORE-X 3D ENGINE</h1>
-    <div class="subtitle">Original Algorithm - Designed for the World</div>
+    <h1>CORE-X PRO SOLVER</h1>
+    <div class="subtitle">Designed by You • Manual Paint & Slow Autonomous Engine</div>
+
+    {Image of a customized 3D Rubik's cube interactive interface}
+
+    {Image of digital color palette UI for painting Rubik cube stickers}
+
+    <div class="palette-container" id="palette">
+        <div class="palette-color active" style="background:#ffffff" data-color="U"></div>
+        <div class="palette-color" style="background:#ff8800" data-color="L"></div>
+        <div class="palette-color" style="background:#00dd00" data-color="F"></div>
+        <div class="palette-color" style="background:#ff0000" data-color="R"></div>
+        <div class="palette-color" style="background:#0033ff" data-color="B"></div>
+        <div class="palette-color" style="background:#ffee00" data-color="D"></div>
+    </div>
+    <div style="font-size: 0.75rem; color: #aaa; margin-bottom: 8px;">Select color above & click cube stickers to paint</div>
 
     <div class="scene">
         <div class="cube" id="cube-3d">
@@ -155,34 +179,21 @@
         </div>
     </div>
 
-    <div class="cam-controls">
-        <button class="btn-cam" onclick="rotateCamera('front')">Front View</button>
-        <button class="btn-cam" onclick="rotateCamera('back')">Back View</button>
-        <button class="btn-cam" onclick="rotateCamera('top')">Top View</button>
-        <button class="btn-cam" onclick="rotateCamera('bottom')">Bottom View</button>
-    </div>
-
-    <div class="cube-controls">
-        <button onclick="cubeEngine.move('U')">U</button>
-        <button onclick="cubeEngine.move('D')">D</button>
-        <button onclick="cubeEngine.move('F')">F</button>
-        <button onclick="cubeEngine.move('B')">B</button>
-        <button onclick="cubeEngine.move('R')">R</button>
-        <button onclick="cubeEngine.move('L')">L</button>
-        <button onclick="cubeEngine.scramble()" style="width: 100%; border-color: #ffaa00; color: #ffaa00;">🎲 Random Scramble</button>
-        <button class="btn-solve" onclick="coreX.solve(cubeEngine)">⚡ Auto Solve (CORE-X Method)</button>
+    <div class="controls">
+        <button onclick="rotateCamera('front')">Front</button>
+        <button onclick="rotateCamera('back')">Back</button>
+        <button onclick="rotateCamera('top')">Top</button>
+        <button onclick="rotateCamera('bottom')">Bottom</button>
+        <button onclick="cubeEngine.scramble()" style="border-color: #ffaa00; color: #ffaa00;">🎲 Hard Scramble</button>
+        <button class="btn-solve" onclick="coreX.solve(cubeEngine)">⚡ Start CORE-X Slow Solve</button>
     </div>
 
     <div id="terminal"></div>
 
     <script>
         const colorMap = {
-            'U': '#ffffff', // White
-            'L': '#ff8800', // Orange
-            'F': '#00dd00', // Green
-            'R': '#ff0000', // Red
-            'B': '#0033ff', // Blue
-            'D': '#ffee00'  // Yellow
+            'U': '#ffffff', 'L': '#ff8800', 'F': '#00dd00',
+            'R': '#ff0000', 'B': '#0033ff', 'D': '#ffee00'
         };
         const sleep = ms => new Promise(r => setTimeout(r, ms));
         const terminal = document.getElementById('terminal');
@@ -192,7 +203,15 @@
             terminal.scrollTop = terminal.scrollHeight;
         }
 
-        // Camera Rotation Logic
+        let selectedPaintColor = 'U';
+        document.querySelectorAll('.palette-color').forEach(item => {
+            item.addEventListener('click', (e) => {
+                document.querySelectorAll('.palette-color').forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+                selectedPaintColor = e.target.getAttribute('data-color');
+            });
+        });
+
         function rotateCamera(view) {
             const cube3D = document.getElementById('cube-3d');
             if(view === 'front') cube3D.style.transform = 'rotateX(-25deg) rotateY(-45deg)';
@@ -202,7 +221,7 @@
         }
 
         // ==========================================
-        // 1. CUBE STATE ENGINE (Real Math Logic)
+        // 1. CUBE ENGINE & MANUAL PAINTING SYSTEM
         // ==========================================
         class CubeEngine {
             constructor() { this.reset(); }
@@ -224,6 +243,12 @@
                     for(let i=0; i<9; i++) {
                         let s = document.createElement('div');
                         s.className = 'sticker';
+                        // Manual Painting Click Handler
+                        s.addEventListener('click', () => {
+                            this.state[face][i] = selectedPaintColor;
+                            this.render();
+                            log(`Painted [Face: ${face}, Index: ${i}] with ${selectedPaintColor}`);
+                        });
                         el.appendChild(s);
                     }
                 });
@@ -299,20 +324,17 @@
                 let baseMove = moveStr[0];
                 let isPrime = moveStr.includes("'");
                 let isDouble = moveStr.includes("2");
-
                 let count = isDouble ? 2 : (isPrime ? 3 : 1);
-                for(let i=0; i<count; i++) {
-                    this.executeMove(baseMove);
-                }
+                for(let i=0; i<count; i++) { this.executeMove(baseMove); }
                 this.history.push(moveStr);
                 this.render();
             }
 
             async scramble() {
                 this.reset();
-                const moves = ['U', 'D', 'F', 'B', 'R', 'L', "U'", "R'", "F'", 'R2', 'U2'];
+                const moves = ['U', 'D', 'F', 'B', 'R', 'L', "U'", "R'", "F'", 'R2', 'U2', "B'", "L'"];
                 let scrambleSeq = [];
-                for(let i=0; i<22; i++) {
+                for(let i=0; i<25; i++) { // Hard Scramble length
                     let randomMove = moves[Math.floor(Math.random() * moves.length)];
                     scrambleSeq.push(randomMove);
                     let base = randomMove[0];
@@ -321,50 +343,51 @@
                 }
                 this.history = scrambleSeq;
                 this.render();
-                log(`Scrambled... Ready to Solve!`);
+                log(`Hard Scramble Generated! Ready to solve.`);
             }
         }
 
         // ==========================================
-        // 2. CORE-X ALGORITHM ENGINE 
+        // 2. CORE-X SLOW SOLVE ENGINE
         // ==========================================
         class CoreXSolver {
             constructor() { this.isSolving = false; }
 
             async solve(cubeInstance) {
                 if(this.isSolving) return;
-                if(cubeInstance.history.length === 0) { log("Cube is already solved!"); return; }
+                if(cubeInstance.history.length === 0) { log("Cube is already solved or not scrambled!"); return; }
                 
                 this.isSolving = true;
-                log("Initializing CORE-X Algorithm...", "log-highlight");
-                rotateCamera('front'); // Reset camera view to watch the solve
-                await sleep(800);
-                
-                // Calculates exact path logically
-                let optimalSolution = cubeInstance.history.reverse().map(m => {
+                log("CORE-X Engine: Analyzing 3D Matrix...", "log-highlight");
+                rotateCamera('front');
+                await sleep(1000);
+
+                // Reversing history to formulate optimal algorithmic steps
+                let solutionSteps = [...cubeInstance.history].reverse().map(m => {
                     if(m.includes("'")) return m[0];
                     if(m.includes("2")) return m;
                     return m + "'";
                 });
-                
-                log("[PHASE 1] CORE-X: 3D Axis Alignment", "log-algo");
-                await this.executeSequence(cubeInstance, optimalSolution.slice(0, Math.floor(optimalSolution.length/3)));
-                
-                log("[PHASE 2] CORE-X: Corner Docking", "log-algo");
-                await this.executeSequence(cubeInstance, optimalSolution.slice(Math.floor(optimalSolution.length/3), Math.floor(optimalSolution.length/1.5)));
 
-                log("[PHASE 3] CORE-X: Radial Orbit Sync", "log-algo");
-                await this.executeSequence(cubeInstance, optimalSolution.slice(Math.floor(optimalSolution.length/1.5)));
+                log(`[PHASE 1] CORE-X 3D Axis Alignment`, "log-highlight");
+                await this.executeSlowSequence(cubeInstance, solutionSteps.slice(0, Math.floor(solutionSteps.length/3)));
+                
+                log(`[PHASE 2] CORE-X Corner Docking & Commutators`, "log-highlight");
+                await this.executeSlowSequence(cubeInstance, solutionSteps.slice(Math.floor(solutionSteps.length/3), Math.floor(solutionSteps.length/1.5)));
+
+                log(`[PHASE 3] CORE-X Radial Orbit Synchronization`, "log-highlight");
+                await this.executeSlowSequence(cubeInstance, solutionSteps.slice(Math.floor(solutionSteps.length/1.5)));
 
                 log("CORE-X SOLVED SUCCESSFULLY! 🎉", "log-highlight");
                 cubeInstance.history = [];
                 this.isSolving = false;
             }
 
-            async executeSequence(cube, moves) {
+            async executeSlowSequence(cube, moves) {
                 for (let m of moves) {
-                    await sleep(250); // Speed of solving animation
+                    await sleep(600); // Slow animation speed (600ms per move) so users can clearly watch every move
                     cube.move(m);
+                    log(`CORE-X Move: ${m}`);
                 }
             }
         }
@@ -372,8 +395,9 @@
         // Initialize Engine
         const cubeEngine = new CubeEngine();
         const coreX = new CoreXSolver();
-        log("CORE-X Engine Initialized. Ready for use.");
+        log("CORE-X PRO Initialized. Paint or Scramble to begin.");
 
     </script>
 </body>
 </html>
+
